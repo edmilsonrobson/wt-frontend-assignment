@@ -77,7 +77,7 @@ https://mock-members-api-154716608073.us-central1.run.app/
 
 ## Authentication
 
-All endpoints (except `/health`) require an API key via the `X-Api-Key` header.
+All endpoints require an API key via the `X-Api-Key` header.
 
 ```
 X-Api-Key: <your-provided-key>
