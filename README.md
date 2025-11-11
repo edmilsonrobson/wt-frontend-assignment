@@ -57,6 +57,7 @@ You may install other libraries or tools if you believe they improve your soluti
 ### 3) General
 - Include the provided API key in every request using the `X-Api-Key` header.
 - Use TypeScript across the project.
+- Structure your code as if it were part of a production application. Design it with scalability and long-term maintainability in mind (as much as possible within the time constraints).
 
 ---
 
