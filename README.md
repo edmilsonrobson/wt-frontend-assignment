@@ -1,3 +1,25 @@
+# Ed's Short Section
+
+1. Assumptions
+
+- I didn't make any assumptions on limits regarding the fields (e.g string length), so I skipped validation on the front-end for that other than the field being present (and file size for the photo, which was explicitly mentioned). This includes age validation for the date of birth.
+- UI/UX was not the focus but I tried to come up with something functional
+- Page size was set to 4 to make it more visible rather than the default 10.
+- I was mostly optimistic with my mutations. I didn't spend too much time treating specific errors and just decided to throw a generic error message on non-2xx results. I opted to simplify things like that which meant I didn't do specific error parsing by treating the statuses differently.
+
+2. Data fetching & management
+
+- No need to overengineer here: react query gives us a lot out of the box, and it's good enough for this use case to be used as a pseudo state management tool with query keys.
+- I invalidated queries when needed and relied on react query's retry mechanism (alongside error and loading handling) to speed up things. It's a no brainer for this type of feature, IMO
+- I opted to create an api wrapper for the member-related api endpoints with proper typescript structuring, which was nice and reusable (e.g Sex and Status being types). I thought about creating another layer of abstraction on top of fetch, but thought it was overkill/overengineering.
+
+3. Trade-offs and shortcuts
+
+- Definitely took a shortcut with error handling here.
+- Invalidations where all done manually. A centralized system on a more complex system, maybe with observability of other components, could be interesting
+- No debouncing/throttling or request cancellation, which are a good idea in forms or things such as page fetching.
+- Just grabbed RequiresAtleastOne<T> from Microsoft's docs to fulfill a need I had with the update member function. I think it's a bit hard to read and reason, but I like the effect it adds even though I don't understand it fully.
+
 # 🧩 Frontend Take-Home Task — Member Management Panel
 
 Welcome to the **Senior Frontend Engineer** take-home assignment.
@@ -8,24 +30,23 @@ This task focuses on functionality, architecture, and reasoning — **we will no
 
 To start, please fork this repository. Any work you do should be committed to that repo. Once you're done, share the link to your repo with the finalized code with us. Please make sure that we have sufficient permissions to view the repository.
 
-We expect you to spend a maximum of 3 hours on this task. Please record your screen while you work on the assignment. Voiceover explaining your thought process is welcome, but not required.
----
+## We expect you to spend a maximum of 3 hours on this task. Please record your screen while you work on the assignment. Voiceover explaining your thought process is welcome, but not required.
 
 ## 🎯 Task Overview
 
 Build a simple admin panel that allows:
 
-1. Viewing a paginated list of members  
-2. Adding a new member  
-3. Viewing and editing member details  
-4. Deleting members  
+1. Viewing a paginated list of members
+2. Adding a new member
+3. Viewing and editing member details
+4. Deleting members
 5. Uploading or changing a member’s profile photo
 
 ---
 
 ## ⚙️ Project Setup
 
-1. **Fork this repository** to your own GitHub account.  
+1. **Fork this repository** to your own GitHub account.
 2. Install dependencies and start the app:
 
 ```bash
@@ -33,10 +54,10 @@ yarn
 yarn dev
 ```
 
-3. You will be provided with an **API key** before starting.  
+3. You will be provided with an **API key** before starting.
    Use the same key consistently for all API requests — **it is what connects the data on the backend to you.**
 
-The project is already set up with React, TypeScript, React Router, Material UI, styled-components and Vite.  
+The project is already set up with React, TypeScript, React Router, Material UI, styled-components and Vite.
 You may install other libraries or tools if you believe they improve your solution.
 
 ---
@@ -44,17 +65,20 @@ You may install other libraries or tools if you believe they improve your soluti
 ## 🧠 Requirements
 
 ### 1) Members List Page (`/`)
+
 - Fetch and display members from the API with pagination (`page` / `limit`).
 - Show each member’s name, date of birth, sex, status, and photo (if available).
 - Allow adding a new member.
 - Clicking a member opens their detail view.
 
 ### 2) Member Details Page (`/members/:id`)
+
 - Fetch a single member by ID.
 - Allow editing all fields and updating the profile photo.
 - Allow deleting a member with confirmation.
 
 ### 3) General
+
 - Include the provided API key in every request using the `X-Api-Key` header.
 - Use TypeScript across the project.
 - Structure your code as if it were part of a production application. Design it with scalability and long-term maintainability in mind (as much as possible within the time constraints).
@@ -83,7 +107,7 @@ All endpoints require an API key via the `X-Api-Key` header.
 X-Api-Key: <your-provided-key>
 ```
 
-You will receive this key before starting the task.  
+You will receive this key before starting the task.
 Each key corresponds to an isolated data namespace.
 
 ---
@@ -94,15 +118,15 @@ Each key corresponds to an isolated data namespace.
 
 ```typescript
 {
-  id: string;             // UUID or string ID
+  id: string; // UUID or string ID
   firstName: string;
   lastName: string;
-  dateOfBirth: string;    // "YYYY-MM-DD"
+  dateOfBirth: string; // "YYYY-MM-DD"
   sex: "male" | "female" | "other";
   status: "ACTIVE" | "PAUSED";
   photoUrl: string | null; // data URL when uploaded, else null
-  createdAt: string;      // ISO datetime
-  updatedAt: string;      // ISO datetime
+  createdAt: string; // ISO datetime
+  updatedAt: string; // ISO datetime
 }
 ```
 
@@ -134,14 +158,17 @@ Each key corresponds to an isolated data namespace.
 ---
 
 ### 1) List Members (Paginated)
-**GET** `/members?page=1&limit=10`  
+
+**GET** `/members?page=1&limit=10`
 Returns a paginated list of members. On the first request, the namespace initializes with 5 default members.
 
 **Query Params:**
+
 - `page` (number, default 1)
 - `limit` (number, default 10)
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -165,16 +192,19 @@ Returns a paginated list of members. On the first request, the namespace initial
 ```
 
 **Errors:**
-- `400 Bad Request` – invalid `page` or `limit`  
+
+- `400 Bad Request` – invalid `page` or `limit`
 - `401 Unauthorized` – missing API key
 
 ---
 
 ### 2) Get Single Member
-**GET** `/members/:id`  
+
+**GET** `/members/:id`
 _Authentication required._
 
 **Response:**
+
 ```json
 {
   "id": "m-1",
@@ -190,16 +220,19 @@ _Authentication required._
 ```
 
 **Errors:**
+
 - `404 Not Found` – member not found
 
 ---
 
 ### 3) Create Member
-**POST** `/members`  
-`Content-Type: application/json`  
+
+**POST** `/members`
+`Content-Type: application/json`
 _Authentication required._
 
 **Body:**
+
 ```json
 {
   "firstName": "Ava",
@@ -211,6 +244,7 @@ _Authentication required._
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": "uuid",
@@ -226,18 +260,21 @@ _Authentication required._
 ```
 
 **Errors:**
-- `400 Bad Request` – validation errors  
+
+- `400 Bad Request` – validation errors
 - `401 Unauthorized` – missing API key
 
 ---
 
 ### 4) Update Member
-**PATCH** `/members/:id`  
+
+**PATCH** `/members/:id`
 `Content-Type: application/json`
 
 All fields are optional; at least one must be provided.
 
 **Example Body:**
+
 ```json
 {
   "firstName": "Jonathan",
@@ -246,6 +283,7 @@ All fields are optional; at least one must be provided.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "m-1",
@@ -261,63 +299,71 @@ All fields are optional; at least one must be provided.
 ```
 
 **Errors:**
-- `400 Bad Request` – invalid or empty update  
+
+- `400 Bad Request` – invalid or empty update
 - `404 Not Found` – member not found
 
 ---
 
 ### 5) Delete Member
+
 **DELETE** `/members/:id`
 
 **Response:**
+
 ```json
 { "success": true }
 ```
 
 **Errors:**
+
 - `404 Not Found` – member not found
 
 ---
 
 ### 6) Upload Member Photo
-**PUT** `/members/:id/photo`  
+
+**PUT** `/members/:id/photo`
 `Content-Type: multipart/form-data`
 
 **Form Field:**
 
-| Field | Type | Required | Description |
-|------|------|----------|-------------|
-| file | File | Yes | JPEG, PNG, or WebP image |
+| Field | Type | Required | Description              |
+| ----- | ---- | -------- | ------------------------ |
+| file  | File | Yes      | JPEG, PNG, or WebP image |
 
 **Constraints:**
-- Max size: 3 MB  
+
+- Max size: 3 MB
 - Allowed types: `image/jpeg`, `image/png`, `image/webp`
 
 **Response:**
+
 ```json
 { "photoUrl": "data:image/png;base64,iVBOR..." }
 ```
 
 **Errors:**
-- `400 Bad Request` – missing or invalid file  
-- `404 Not Found` – member not found  
-- `413 Payload Too Large` – exceeds 3 MB  
+
+- `400 Bad Request` – missing or invalid file
+- `404 Not Found` – member not found
+- `413 Payload Too Large` – exceeds 3 MB
 - `415 Unsupported Media Type` – invalid type
 
 ---
 
 ## ⚠️ Notes
 
-- Each provided API key has **isolated data**.  
-- Data persists in memory while the service is running.  
-- The first `GET /members` request initializes your namespace with 5 default members (`m-1` → `m-5`).  
-- Default member limit: **1,000** per key; max **200** photos per key.  
+- Each provided API key has **isolated data**.
+- Data persists in memory while the service is running.
+- The first `GET /members` request initializes your namespace with 5 default members (`m-1` → `m-5`).
+- Default member limit: **1,000** per key; max **200** photos per key.
 
 ---
 
 ## 🚀 Submission
 
-1. Push your fork to your GitHub account.  
+1. Push your fork to your GitHub account.
 2. Ensure the app runs locally with:
 
 ```bash
@@ -326,9 +372,9 @@ yarn dev
 ```
 
 3. Include a short section in your README explaining:
-   - Any assumptions you made  
-   - How you approached data fetching and state management  
-   - Any trade-offs or shortcuts you took  
+   - Any assumptions you made
+   - How you approached data fetching and state management
+   - Any trade-offs or shortcuts you took
 
 Then share the repository link.
 
