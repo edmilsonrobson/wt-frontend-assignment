@@ -83,7 +83,11 @@ export const NewMemberForm = () => {
           onChange={(e) => handleChange("dateOfBirth", e.target.value)}
           required
           fullWidth
-          InputLabelProps={{ shrink: true }}
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
+          }}
         />
 
         <TextField

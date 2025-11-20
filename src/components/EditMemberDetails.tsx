@@ -7,8 +7,11 @@ import {
   DialogActions,
   Container,
   Box,
+  TextField,
+  MenuItem,
+  CircularProgress,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -33,6 +36,14 @@ export const EditMemberDetails = ({ member }: IProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [formData, setFormData] = useState<UpdateMemberData>({
+    firstName: member.firstName,
+    lastName: member.lastName,
+    dateOfBirth: member.dateOfBirth,
+    sex: member.sex,
+    status: member.status,
+  });
+
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -46,6 +57,7 @@ export const EditMemberDetails = ({ member }: IProps) => {
     mutationFn: (data: UpdateMemberData) => updateMember(member.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member", member.id] });
+      setIsEditMode(false);
     },
   });
 
@@ -66,29 +78,137 @@ export const EditMemberDetails = ({ member }: IProps) => {
     setIsEditMode(bool);
   };
 
+  const handleInputChange = (field: keyof UpdateMemberData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate(formData);
+  };
+
   return (
     <StyledContainer>
+      <Button variant="text" color="primary" onClick={() => navigate("/")}>
+        Back to Members List
+      </Button>
       <Typography variant="h2" component="h1" gutterBottom>
         {member.firstName} {member.lastName}
       </Typography>
       <UserAvatar member={member} />
-      <Typography>Member Details {member.id}</Typography>
+      <Typography>ID: {member.id}</Typography>
 
-      <Box sx={{ display: "flex", gap: 2, justifyContent: "center", my: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setEditMode(true)}
+      {!isEditMode && (
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", my: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setEditMode(true)}
+          >
+            EDIT
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleDeleteButtonClick}
+          >
+            Delete
+          </Button>
+        </Box>
+      )}
+
+      <Box
+        sx={{ width: "100%", maxWidth: 500, mt: 3 }}
+        component="form"
+        onSubmit={handleSubmit}
+      >
+        <TextField
+          fullWidth
+          label="First Name"
+          value={formData.firstName}
+          onChange={(e) => handleInputChange("firstName", e.target.value)}
+          disabled={!isEditMode}
+          required
+          margin="normal"
+        />
+        <TextField
+          fullWidth
+          label="Last Name"
+          value={formData.lastName}
+          onChange={(e) => handleInputChange("lastName", e.target.value)}
+          disabled={!isEditMode}
+          required
+          margin="normal"
+        />
+        <TextField
+          fullWidth
+          label="Date of Birth"
+          value={formData.dateOfBirth}
+          onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+          disabled={!isEditMode}
+          required
+          margin="normal"
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
+          }}
+          type="date"
+        />
+        <TextField
+          fullWidth
+          select
+          label="Sex"
+          value={formData.sex}
+          onChange={(e) => handleInputChange("sex", e.target.value)}
+          disabled={!isEditMode}
+          required
+          margin="normal"
         >
-          EDIT
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleDeleteButtonClick}
+          <MenuItem value="male">Male</MenuItem>
+          <MenuItem value="female">Female</MenuItem>
+          <MenuItem value="other">Other</MenuItem>
+        </TextField>
+        <TextField
+          fullWidth
+          select
+          label="Status"
+          value={formData.status}
+          onChange={(e) => handleInputChange("status", e.target.value)}
+          disabled={!isEditMode}
+          margin="normal"
+          required
         >
-          Delete
-        </Button>
+          <MenuItem value="ACTIVE">Active</MenuItem>
+          <MenuItem value="PAUSED">Paused</MenuItem>
+        </TextField>
+
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", my: 2 }}>
+          {isEditMode && (
+            <>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={updateMutation.isPending}
+                fullWidth
+              >
+                {updateMutation.isPending ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  "Save"
+                )}
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => setEditMode(false)}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </Box>
       </Box>
 
       <Dialog open={isDeleteDialogOpen} onClose={handleDeleteDialogClose}>
