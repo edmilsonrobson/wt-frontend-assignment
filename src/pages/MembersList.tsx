@@ -59,7 +59,7 @@ const InfoRow = styled(Box)`
 `;
 
 export const MembersList = () => {
-  const [open, setOpen] = useState(false);
+  const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const { data, isLoading, error } = useQuery({
@@ -105,7 +105,7 @@ export const MembersList = () => {
   };
 
   const handleClose = () => {
-    setOpen(false);
+    setIsNewMemberDialogOpen(false);
   };
 
   const handleMemberClick = (member: Member) => {
@@ -118,10 +118,14 @@ export const MembersList = () => {
         Members List
       </Typography>
 
-      <Button variant="contained" onClick={() => setOpen(true)} sx={{ mb: 2 }}>
+      <Button
+        variant="contained"
+        onClick={() => setIsNewMemberDialogOpen(true)}
+        sx={{ mb: 2 }}
+      >
         Add Member
       </Button>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={isNewMemberDialogOpen} onClose={handleClose}>
         <DialogTitle>Add Member</DialogTitle>
         <DialogContent>
           <NewMemberForm />
