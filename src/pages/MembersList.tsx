@@ -68,8 +68,6 @@ export const MembersList = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  console.log({ data, isLoading, error });
-
   if (isLoading) {
     return (
       <StyledContainer maxWidth="md">
