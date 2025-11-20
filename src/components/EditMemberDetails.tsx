@@ -64,6 +64,7 @@ export const EditMemberDetails = ({ member }: IProps) => {
     mutationFn: (data: UpdateMemberData) => updateMember(member.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member", member.id] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
       setIsEditMode(false);
     },
   });
