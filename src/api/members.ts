@@ -124,3 +124,42 @@ export async function deleteMember(id: string): Promise<void> {
 
   return response.json();
 }
+
+type RequiresAtLeastOne<T> = {
+  [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
+}[keyof T]
+
+interface UpdateMemberDataBase {
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  sex?: Sex;
+  status?: Status;
+}
+
+export type UpdateMemberData = RequiresAtLeastOne<UpdateMemberDataBase>;
+
+export async function updateMember(
+  id: string,
+  data: UpdateMemberData
+): Promise<Member> {
+  const url = `${BASE_URL}/members/${id}`;
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "X-Api-Key": API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
