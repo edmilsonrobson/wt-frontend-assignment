@@ -41,6 +41,7 @@ export const EditMemberDetails = ({ member }: IProps) => {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [uploadPhotoError, setUploadPhotoError] = useState<string>("");
 
   const [formData, setFormData] = useState<UpdateMemberData>({
     firstName: member.firstName,
@@ -107,6 +108,16 @@ export const EditMemberDetails = ({ member }: IProps) => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const validTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        setUploadPhotoError("Only JPEG, PNG, or WEBP images are allowed.");
+        return;
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        setUploadPhotoError("File size must be less than 3MB");
+        return;
+      }
+      setUploadPhotoError("");
       uploadPhotoMutation.mutate(file);
     }
   };
@@ -119,7 +130,15 @@ export const EditMemberDetails = ({ member }: IProps) => {
       <Typography variant="h2" component="h1" gutterBottom>
         {member.firstName} {member.lastName}
       </Typography>
-      <UserAvatar member={member} onClick={handleAvatarClick} isEditable />
+      <UserAvatar
+        member={member}
+        onClick={handleAvatarClick}
+        isEditable
+        loading={uploadPhotoMutation.isPending}
+      />
+      {uploadPhotoError && (
+        <Typography color="error">{uploadPhotoError}</Typography>
+      )}
       <Typography>ID: {member.id}</Typography>
 
       {!isEditMode && (
