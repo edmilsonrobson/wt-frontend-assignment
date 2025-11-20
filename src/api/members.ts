@@ -104,3 +104,23 @@ export async function getSingleMember(id: string): Promise<Member> {
 
   return response.json();
 }
+
+export async function deleteMember(id: string): Promise<void> {
+  const url = `${BASE_URL}/members/${id}`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      "X-Api-Key": API_KEY,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
