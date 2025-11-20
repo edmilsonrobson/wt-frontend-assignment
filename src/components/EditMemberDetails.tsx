@@ -11,13 +11,13 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { UserAvatar } from "./UserAvatar";
 import type { Member, UpdateMemberData } from "../api/members";
-import { deleteMember, updateMember } from "../api/members";
+import { deleteMember, updateMember, uploadPhoto } from "../api/members";
 import styled from "styled-components";
 
 const StyledContainer = styled(Container)`
@@ -26,12 +26,18 @@ const StyledContainer = styled(Container)`
   align-items: center;
 `;
 
+const InvisibleInput = styled.input`
+  display: none;
+`;
+
 interface IProps {
   member: Member;
 }
 
 export const EditMemberDetails = ({ member }: IProps) => {
   const navigate = useNavigate();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -58,6 +64,13 @@ export const EditMemberDetails = ({ member }: IProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member", member.id] });
       setIsEditMode(false);
+    },
+  });
+  const uploadPhotoMutation = useMutation({
+    mutationFn: (file: File) => uploadPhoto(member.id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["member", member.id] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 
@@ -87,6 +100,17 @@ export const EditMemberDetails = ({ member }: IProps) => {
     updateMutation.mutate(formData);
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadPhotoMutation.mutate(file);
+    }
+  };
+
   return (
     <StyledContainer>
       <Button variant="text" color="primary" onClick={() => navigate("/")}>
@@ -95,7 +119,7 @@ export const EditMemberDetails = ({ member }: IProps) => {
       <Typography variant="h2" component="h1" gutterBottom>
         {member.firstName} {member.lastName}
       </Typography>
-      <UserAvatar member={member} />
+      <UserAvatar member={member} onClick={handleAvatarClick} isEditable />
       <Typography>ID: {member.id}</Typography>
 
       {!isEditMode && (
@@ -234,6 +258,13 @@ export const EditMemberDetails = ({ member }: IProps) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <InvisibleInput
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+      />
     </StyledContainer>
   );
 };

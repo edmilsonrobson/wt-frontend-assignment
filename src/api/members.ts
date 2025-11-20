@@ -126,8 +126,9 @@ export async function deleteMember(id: string): Promise<void> {
 }
 
 type RequiresAtLeastOne<T> = {
-  [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
-}[keyof T]
+  [K in keyof T]-?: Required<Pick<T, K>> &
+    Partial<Pick<T, Exclude<keyof T, K>>>;
+}[keyof T];
 
 interface UpdateMemberDataBase {
   firstName?: string;
@@ -152,6 +153,30 @@ export async function updateMember(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function uploadPhoto(id: string, file: File): Promise<void> {
+  const url = `${BASE_URL}/members/${id}/photo`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "X-Api-Key": API_KEY,
+    },
+    body: formData,
   });
 
   if (!response.ok) {
