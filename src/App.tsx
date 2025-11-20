@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { MembersList } from "./pages/MembersList";
-import { MemberDetails } from "./pages/MemberDetais";
+import { MemberDetails } from "./pages/MemberDetails";
 
 const theme = createTheme({
   palette: {
